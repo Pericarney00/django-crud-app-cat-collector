@@ -21,8 +21,16 @@ def cat_index(request):
 
 def cat_detail(request, cat_id):
     cat = Cat.objects.get(id=cat_id)
+
     feeding_form = FeedingForm()
-    return render(request, 'cats/detail.html', {'cat': cat, 'feeding_form': feeding_form})
+
+    toys_cat_doesnt_have = Toy.objects.exclude(id__in = cat.toys.all().values_list('id'))
+
+    return render(request, 'cats/detail.html', {
+        'cat': cat,
+        'feeding_form': feeding_form,
+        'toys': toys_cat_doesnt_have  # Pass toys to the template
+    })
 
 def add_feeding(request, cat_id):
     form = FeedingForm(request.POST)
@@ -35,7 +43,8 @@ def add_feeding(request, cat_id):
 # Create Class Views
 class CatCreate(CreateView):
     model = Cat
-    fields = '__all__'
+    fields = ['name', 'breed', 'description', 'age']
+
 
 class CatUpdate(UpdateView):
     model = Cat
@@ -54,7 +63,7 @@ class ToyList(ListView):
 
 class ToyDetail(DetailView):
     model = Toy
-    
+
 class ToyUpdate(UpdateView):
     model = Toy
     fields = ['name', 'color']
@@ -62,3 +71,17 @@ class ToyUpdate(UpdateView):
 class ToyDelete(DeleteView):
     model = Toy
     success_url = '/toys/'
+
+def associate_toy(request, cat_id, toy_id):
+    # Note that you can pass a toy's id instead of the whole object
+    Cat.objects.get(id=cat_id).toys.add(toy_id)
+    return redirect('cat-detail', cat_id=cat_id)
+
+def remove_toy(request, cat_id, toy_id):
+    # Look up the cat
+    cat = Cat.objects.get(id=cat_id)
+    # Look up the toy
+    toy = Toy.objects.get(id=toy_id)
+    # Remove the toy from the cat
+    cat.toys.remove(toy)
+    return redirect('cat-detail', cat_id=cat.id)
