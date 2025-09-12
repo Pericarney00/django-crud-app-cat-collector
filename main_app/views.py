@@ -3,14 +3,18 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
 from .models import Cat, Toy
 from .forms import FeedingForm
+from django.contrib.auth.views import LoginView
+
 
 
 
 # Create your views here. These are functional views
 
-def home(request):
-    # Send a simple HTML response
-    return render(request, 'home.html')
+
+
+class Home(LoginView):
+    template_name = 'home.html'
+
 
 def about(request):
     return render(request, 'about.html')
